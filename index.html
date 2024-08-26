@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Responsive Tic Tac Toe</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+        body {
+            background-color: #0d1b2a;
+            text-align: center;
+            color: #ffffff;
+            overflow: hidden; /* Prevent scrolling when blurred */
+        }
+
+        .blurred-overlay {
+            position: fixed; /* Fix the overlay to cover the entire viewport */
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6); /* Semi-transparent background */
+            filter: blur(8px); /* Apply the blur effect */
+            z-index: 15; /* Ensure it's below the msg-container */
+            display: none; /* Hidden by default */
+        }
+
+        .msg-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: #fff9f9;
+            box-shadow: 0 0 2rem #00bcd4;
+            border-radius: 1rem;
+            padding: 2rem;
+            width: 80%;
+            max-width: 600px;
+            z-index: 20; /* Ensure it's above the overlay */
+        }
+
+        .hide {
+            display: none;
+        }
+
+        h1 {
+            margin-top: 5rem;
+            font-size: 2.5rem;
+            color: #fff;
+            text-shadow:
+            1px 1px 2px black,
+            0 0 1em #00bcd4,
+            0 0 0.2em #00bcd4;
+        }
+
+        h1 span {
+            font-size: 5rem;
+            color: #00bcd4;
+        }
+
+        .container {
+            height: 65vh;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            margin-top: .8rem;
+            margin-bottom: .5rem;
+        }
+
+        .game {
+            height: 69vmin;
+            width: 80vmin;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 1.5vmin;
+            padding: 1.5rem;
+            border-radius: 1rem;
+        }
+
+        .box {
+            height: 19vmin;
+            width: 20vmin;
+            border-radius: 1rem;
+            border: none;
+            font-size: 8vmin;
+            color: #fff9f9;
+            background: #0000;
+            box-shadow: 0 0 2rem #00bcd4;
+        }
+
+        #reset-btn, #new-btn {
+            padding: 1rem 1.5rem;
+            font-size: 1rem;
+            background-color: #191913;
+            color: #fffc;
+            border: none;
+            transition: all 0.1s ease;
+        }
+
+        #reset-btn{
+            margin-top: .8rem;
+        }
+
+        #reset-btn:hover, #new-btn:hover {
+            box-shadow: 0 0 1.5rem #00bcd4, inset 0 0 1rem #00bcd4;
+            transform: translateY(-3px);
+        }
+
+        #msg {
+            color: #ffffc7;
+            font-size: 7vmin;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="blurred-overlay" id="overlay"></div>
+    <div class="msg-container hide">
+        <p id="msg"></p>
+        <button id="new-btn" class="btn btn-primary">New Game</button>
+    </div>
+
+    <main>
+        <h1><span>T</span>ic <span>T</span>ac <span>T</span>oe</h1>
+        <div class="container">
+            <div class="game">
+                <button class="box"></button>
+                <button class="box"></button>
+                <button class="box"></button>
+                <button class="box"></button>
+                <button class="box"></button>
+                <button class="box"></button>
+                <button class="box"></button>
+                <button class="box"></button>
+                <button class="box"></button>
+            </div>
+        </div>
+        <button id="reset-btn" class="btn btn-dark">Reset Game</button>
+    </main>
+
+    <script>
+        let boxes = document.querySelectorAll(".box");
+        let resetBtn = document.querySelector("#reset-btn");
+        let newGameBtn = document.querySelector("#new-btn");
+        let msgContainer = document.querySelector(".msg-container");
+        let msg = document.querySelector("#msg");
+        let overlay = document.querySelector("#overlay");
+
+        let turn0 = true;
+
+        const winPatterns = [
+            [0, 1, 2],
+            [0, 3, 6],
+            [0, 4, 8],
+            [1, 4, 7],
+            [2, 5, 8],
+            [2, 4, 6],
+            [3, 4, 5],
+            [6, 7, 8],
+        ];
+
+        const resetGame = () => {
+            turn0 = true;
+            enableBoxes();
+            msgContainer.classList.add("hide");
+            overlay.style.display = "none";
+        };
+
+        boxes.forEach((box) => {
+            box.addEventListener("click", () => {
+                if (turn0) {
+                    box.innerText = "O";
+                    turn0 = false;
+                } else {
+                    box.innerText = "X";
+                    turn0 = true;
+                }
+                box.disabled = true;
+
+                checkWinner();
+            });
+        });
+
+        const disableBoxes = () => {
+            for (let box of boxes) {
+                box.disabled = true;
+            }
+        };
+
+        const enableBoxes = () => {
+            for (let box of boxes) {
+                box.disabled = false;
+                box.innerText = "";
+            }
+        };
+
+        const showWinner = (winner) => {
+            msg.innerText = `Congratulations, Winner is ${winner}`;
+            msgContainer.classList.remove("hide");
+            overlay.style.display = "block";
+            disableBoxes();
+        };
+
+        const checkWinner = () => {
+            for (let pattern of winPatterns) {
+                let pos1Val = boxes[pattern[0]].innerText;
+                let pos2Val = boxes[pattern[1]].innerText;
+                let pos3Val = boxes[pattern[2]].innerText;
+
+                if (pos1Val !== "" && pos2Val !== "" && pos3Val !== "") {
+                    if (pos1Val === pos2Val && pos2Val === pos3Val) {
+                        showWinner(pos1Val);
+                    }
+                }
+            }
+        };
+
+        newGameBtn.addEventListener("click", resetGame);
+        resetBtn.addEventListener("click", resetGame);
+    </script>
+</body>
+</html>
